@@ -1,0 +1,5 @@
+# with flock command
+## blocking multiple execution ##
+
+00 * * * * root flock -n /tmp/lockfile -c "/cleanScripts/loris-cache_clean.sh";
+00 * * * * root flock -n /tmp/lockfile -c "/cleanScripts/loris-http_cache_clean.sh";
