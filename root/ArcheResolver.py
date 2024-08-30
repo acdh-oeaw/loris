@@ -54,19 +54,24 @@ class ArcheResolver(SimpleHTTPResolver):
 
     def resolve(self, app, ident, base_uri):
         ident = unquote(ident)
-        if ':' in ident:
-            return super(ArcheResolver, self).resolve(app, 'https://id.acdh.oeaw.ac.at' + ident.split(':', 1)[1], base_uri)
-        elif '/' in ident:
-            return super(ArcheResolver, self).resolve(app, 'https://' + ident, base_uri)
-        else:
-            url = self.arche_base_url + ident
-            with closing(requests.head(url)) as response:
-                if response.status_code == 401:
-                    fp = self.unauthorized_image
-                elif response.status_code != 200:
-                    raise ResolverException(f'Can not resolve the image')
-                else:
-                    fp = self._get_arche_path(ident)
-            format_ = self._get_file_format(fp)
-            return ImageInfo(app=app, src_img_fp=fp, src_format=format_, auth_rules={})
+        try:
+            if ':' in ident:
+                return super(ArcheResolver, self).resolve(app, 'https://id.acdh.oeaw.ac.at' + ident.split(':', 1)[1], base_uri)
+            elif '/' in ident:
+                return super(ArcheResolver, self).resolve(app, 'https://' + ident, base_uri)
+            else:
+                url = self.arche_base_url + ident
+                with closing(requests.head(url)) as response:
+                    if response.status_code == 401:
+                        fp = self.unauthorized_image
+                    elif response.status_code != 200:
+                        raise ResolverException(f'Can not resolve the image')
+                    else:
+                        fp = self._get_arche_path(ident)
+        except ResolverException as e:
+            if 'Status code returned: 401.' not in str(e):
+                raise e
+            fp = self.unauthorized_image
+        format_ = self._get_file_format(fp)
+        return ImageInfo(app=app, src_img_fp=fp, src_format=format_, auth_rules={})
 
