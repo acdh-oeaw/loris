@@ -35,11 +35,11 @@ jobs:
           tags: |
             acdhch/${{ env.IMAGE_TAG }}
             ghcr.io/acdh-oeaw/${{ env.IMAGE_TAG }}
-  rancher:
-    needs: build_and_push_to_registry
-    name: Deploy to rancher
-    runs-on: ubuntu-latest
-    steps:
-    - name: Rancher Deploy Action
-      run: |
-        curl -i -X POST "${{ secrets.RANCHERURL }}?action=redeploy" -H "Authorization: Bearer ${{ secrets.RANCHER_BARER_TOKEN }}"
+#  rancher:
+#    needs: build_and_push_to_registry
+#    name: Deploy to rancher
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Rancher Deploy Action
+#      run: |
+#        curl -i -X POST "${{ secrets.RANCHERURL }}?action=redeploy" -H "Authorization: Bearer ${{ secrets.RANCHER_BARER_TOKEN }}"
