@@ -1,2 +1,2 @@
 # with flock command blocking multiple executions
-0 * * * * root flock -n /tmp/lockfile -c "/custom/loris-cache_clean.sh /var/cache/loris/ 2097152 60 >> /var/log/loris/cache_clean.log";
+0 * * * * root flock -n /tmp/lockfile -c "/root/loris-cache_clean.sh /var/cache/loris/ 2097152 60 >> /var/log/loris/cache_clean.log";
