@@ -5,11 +5,19 @@ Important files
 * `root/loris.conf`, especially the section with the resolver settings
 * `root/loris-cron` - defines the cache pruning frequency and allowed cache size
 
+## Adjustments made
+
+* Own [resolver](https://github.com/loris-imageserver/loris/blob/development/doc/resolver.md) combining
+  `SimpleFSResolver` serving data from `/tmp/static` with `SimpleHTTPResolver` serving data from
+  ARCHE instances and capable of accessing data from a single selected ARCHE instance locally.
+* Loris configuration tuned to support WEBP and GIF as source formats and WEBP as an output format.
+
 ## Debugging
 
 * Apache/WSGI logs are in `/var/log/loris/`
 * After the deployment sources used by the WSGI module are in `/usr/local/lib/python3.8/dist-packages/loris`.
-  After editing the Apache should be restarted with `supervisorctl restart apache2`
+  * Especially the `loris.conf` is in `/usr/local/lib/python3.8/dist-packages/loris/data/loris.conf`
+  * After editing the Apache should be restarted with `supervisorctl restart apache2`
 * For experimenting with file formats support:
   * create `/tmp/static/` directory owned by the `www-data:www-data` user/group
   * upload images into it

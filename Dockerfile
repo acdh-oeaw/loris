@@ -73,9 +73,13 @@ RUN cd /opt && \
     cat /root/ArcheResolver.py >> /opt/loris/loris/resolver.py && \
     mv /root/loris.conf /opt/loris/loris/data/loris.conf && \
     apt-get remove -y python3-chardet && \
+    # patch loris so it accepts all formats supported by the pillow package
+    sed -i -e 's/elif self.src_format in .*/elif self.src_format in Image.registered_extensions():/' loris/img_info.py &&\
     pip3 install . && \
     python3 /opt/loris/bin/setup_directories.py && \
-    mv /root/restrictedAccess.png /opt/loris/restrictedAccess.png
+    # ARCHE-specific stuff
+    mv /root/restrictedAccess.png /opt/loris/restrictedAccess.png && \
+    mkdir /tmp/static && chown www-data:www-data /tmp/static
 
 WORKDIR /opt/loris
 VOLUME  /var/log/loris /var/cache/loris
