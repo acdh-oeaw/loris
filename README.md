@@ -1,4 +1,4 @@
-# Loris image server
+# Loris image server deployment for ARCHE
 
 Important files
 
