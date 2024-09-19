@@ -42,6 +42,8 @@ class ArcheResolver(SimpleHTTPResolver):
 
     def is_resolvable(self, ident):
         ident = unquote(ident)
+        if exists(join('/tmp/static/', ident)):
+            return True
         if ':' in ident:
             url = 'https://id.acdh.oeaw.ac.at' + ident.split(':', 1)[1]
         elif '/' in ident:
@@ -54,6 +56,9 @@ class ArcheResolver(SimpleHTTPResolver):
 
     def resolve(self, app, ident, base_uri):
         ident = unquote(ident)
+        if exists(join('/tmp/static/', ident)):
+            fp = join('/tmp/static/', ident)
+            return ImageInfo(app=app, src_img_fp=fp, src_format=self._get_file_format(fp), auth_rules={})
         try:
             if ':' in ident:
                 return super(ArcheResolver, self).resolve(app, 'https://id.acdh.oeaw.ac.at' + ident.split(':', 1)[1], base_uri)
