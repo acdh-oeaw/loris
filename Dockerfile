@@ -1,11 +1,11 @@
-FROM ubuntu:20.04
-MAINTAINER Dalibor Pančić <dalibor.pancic@oeaw.ac.at>
+FROM ubuntu:24.04
+LABEL org.opencontainers.image.authors=<mzoltak@oeaw.ac.at>
 # install software
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
     HOME=/opt \
-    OPENJPG_VERSION=v2.5.2 \
+    OPENJPG_VERSION=v2.5.4 \
     TZ='Europe/Vienna' \
     PYTHONPATH=/usr/local/lib/python3.8/site-packages 
  
@@ -17,7 +17,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y apache2 libapache2-mod-wsgi-py3 apache2-utils \
                        cron git unzip nano cmake locales vim git wget supervisor \
-                       python3-pip \
+                       python3-venv python3-pip \
                        libwebp-dev libharfbuzz-dev libfribidi-dev libjpeg-turbo8-dev libfreetype6-dev zlib1g-dev \
                        openssl libglib2.0-dev gtk-doc-tools liblcms2-dev libffi-dev libjpeg-dev tzdata \
                        liblcms2-utils libssl-dev libffi-dev liblcms2-dev python3-dev libtiff5-dev  && \
@@ -68,17 +68,24 @@ RUN mkdir /tmp/openjpeg && \
 
 # Get loris
 RUN cd /opt && \
-    git clone https://github.com/loris-imageserver/loris.git && \
-    cd /opt/loris && git checkout tags/v3.2.1 && \ 
-    cat /root/ArcheResolver.py >> /opt/loris/loris/resolver.py && \
-    mv /root/loris.conf /opt/loris/loris/data/loris.conf && \
-    apt-get remove -y python3-chardet && \
+    git clone https://github.com/loris-imageserver/loris.git &&\
+    cd /opt/loris && git checkout tags/v3.2.1 &&\ 
+    cat /root/ArcheResolver.py >> /opt/loris/loris/resolver.py &&\
+    mv /root/loris.conf /opt/loris/loris/data/loris.conf &&\
+    apt-get remove -y python3-chardet &&\
     # patch loris so it accepts all formats supported by the pillow package
     sed -i -e 's/elif self.src_format in .*/elif self.src_format in Image.registered_extensions():/' loris/img_info.py &&\
-    pip3 install . && \
-    python3 /opt/loris/bin/setup_directories.py && \
+    python3 -m venv /opt/loris/venv &&\
+    export PATH="/opt/loris/venv/bin:$PATH" &&\
+    pip install pip-tools &&\
+    # fix dependencies
+    sed -i -e 's/werkzeug .*/werkzeug >= 0.11.4,< 1.0/' requirements.in &&\
+    pip-compile -r -U requirements.in &&\
+    pip uninstall -y pip-tools &&\
+    pip install . &&\
+    python3 /opt/loris/bin/setup_directories.py &&\
     # ARCHE-specific stuff
-    mv /root/restrictedAccess.png /opt/loris/restrictedAccess.png && \
+    mv /root/restrictedAccess.png /opt/loris/restrictedAccess.png &&\
     mkdir /tmp/static && chown www-data:www-data /tmp/static
 
 WORKDIR /opt/loris
