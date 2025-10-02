@@ -61,12 +61,17 @@ class ArcheResolver(SimpleHTTPResolver):
             return ImageInfo(app=app, src_img_fp=fp, src_format=self._get_file_format(fp), auth_rules={})
         try:
             if ':' in ident:
-                return super(ArcheResolver, self).resolve(app, 'https://id.acdh.oeaw.ac.at' + ident.split(':', 1)[1], base_uri)
+                url = self._resolve_redirects('https://id.acdh.oeaw.ac.at/' + ident.split(':', 1)[1])
+                return super(ArcheResolver, self).resolve(app, url, base_uri)
             elif '/' in ident:
-                return super(ArcheResolver, self).resolve(app, 'https://' + ident, base_uri)
+                url = self._resolve_redirects('https://' + ident)
+                return super(ArcheResolver, self).resolve(app, url, base_uri)
             else:
                 url = self.arche_base_url + ident
-                with closing(requests.head(url)) as response:
+                auth = None
+                if self.user and self.pw:
+                    auth = (self.user, self.pw)
+                with closing(requests.head(url, auth=auth)) as response:
                     if response.status_code == 401:
                         fp = self.unauthorized_image
                     elif response.status_code != 200:
@@ -79,4 +84,15 @@ class ArcheResolver(SimpleHTTPResolver):
             fp = self.unauthorized_image
         format_ = self._get_file_format(fp)
         return ImageInfo(app=app, src_img_fp=fp, src_format=format_, auth_rules={})
+
+    def _resolve_redirects(self, url, n=10):
+        """
+        So if credentials are provided by the request, they are passed to the final URL
+        """
+        if n <= 0:
+            raise ResolverException("Redirects limit reached")
+        response = requests.head(url, allow_redirects = False)
+        if int(response.status_code / 100) == 3:
+            return self._resolve_redirects(response.headers['location'], n - 1)
+        return url
 

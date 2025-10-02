@@ -16,7 +16,7 @@ COPY root /root
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y apache2 libapache2-mod-wsgi-py3 apache2-utils \
-                       cron git unzip nano cmake locales vim git wget supervisor \
+                       cron git unzip cmake locales vim git curl supervisor \
                        python3-venv python3-pip \
                        libwebp-dev libharfbuzz-dev libfribidi-dev libjpeg-turbo8-dev libfreetype6-dev zlib1g-dev \
                        openssl libglib2.0-dev gtk-doc-tools liblcms2-dev libffi-dev libjpeg-dev tzdata \
@@ -53,10 +53,10 @@ RUN mkdir /tmp/openjpeg && \
     rm -fR /tmp/openjpeg && \
 # Install kakadu
     cd /usr/local/lib && \
-    wget --no-check-certificate https://github.com/loris-imageserver/loris/raw/development/lib/Linux/x86_64/libkdu_v74R.so && \
+    curl -k https://github.com/loris-imageserver/loris/raw/development/lib/Linux/x86_64/libkdu_v74R.so > libkdu_v74R.so && \
     chmod 755 libkdu_v74R.so && \
     cd /usr/local/bin && \
-    wget --no-check-certificate https://github.com/loris-imageserver/loris/raw/development/bin/Linux/x86_64/kdu_expand && \
+    curl -k https://github.com/loris-imageserver/loris/raw/development/bin/Linux/x86_64/kdu_expand > kdu_expand && \
     chmod 755 kdu_expand && \
 # shortlinks for other libraries
     ln -s /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib/ && \
@@ -75,11 +75,18 @@ RUN cd /opt && \
     apt-get remove -y python3-chardet &&\
     # patch loris so it accepts all formats supported by the pillow package
     sed -i -e 's/elif self.src_format in .*/elif self.src_format in Image.registered_extensions():/' loris/img_info.py &&\
+    # patch loris for newer pillow version
+    sed -i -e 's/ANTIALIAS/LANCZOS/g' loris/transforms.py &&\
+    # patch loris so it follow authorization to the resolver
+    sed -i -e '/.*self.resolver.resolve/i\\        if request.authorization:' loris/webapp.py  &&\
+    sed -i -e '/.*self.resolver.resolve/i\\            self.resolver.user = request.authorization.get("username")' loris/webapp.py &&\
+    sed -i -e '/.*self.resolver.resolve/i\\            self.resolver.pw = request.authorization.get("password")' loris/webapp.py &&\
     python3 -m venv /opt/loris/venv &&\
     export PATH="/opt/loris/venv/bin:$PATH" &&\
     pip install pip-tools &&\
     # fix dependencies
     sed -i -e 's/werkzeug .*/werkzeug >= 0.11.4,< 1.0/' requirements.in &&\
+    sed -i -e 's/pillow .*/pillow == 11.3/' requirements.in &&\
     pip-compile -r -U requirements.in &&\
     pip uninstall -y pip-tools &&\
     pip install . &&\

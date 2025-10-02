@@ -15,8 +15,8 @@ Important files
 ## Debugging
 
 * Apache/WSGI logs are in `/var/log/loris/`
-* After the deployment sources used by the WSGI module are in `/usr/local/lib/python3.8/dist-packages/loris`.
-  * Especially the `loris.conf` is in `/usr/local/lib/python3.8/dist-packages/loris/data/loris.conf`
+* After the deployment sources used by the WSGI module are in `/opt/loris/venv/lib/python3.12/site-packages/loris`.
+  * Especially the `loris.conf` is in `/opt/loris/venv/lib/python3.12/site-packages/loris/data/loris.conf`
   * After editing the Apache should be restarted with `supervisorctl restart apache2`
 * For experimenting with file formats support:
   * create `/tmp/static/` directory owned by the `www-data:www-data` user/group
