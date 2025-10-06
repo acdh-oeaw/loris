@@ -77,11 +77,9 @@ RUN cd /opt && \
     sed -i -e 's/elif self.src_format in .*/elif self.src_format in Image.registered_extensions():/' loris/img_info.py &&\
     # patch loris for newer pillow version
     sed -i -e 's/ANTIALIAS/LANCZOS/g' loris/transforms.py &&\
-    # patch loris so it follow authorization to the resolver
-    sed -i -e '/.*self.resolver.resolve/i\\        if request.authorization:' loris/webapp.py  &&\
-    sed -i -e '/.*self.resolver.resolve/i\\            self.resolver.user = request.authorization.get("username")' loris/webapp.py &&\
-    sed -i -e '/.*self.resolver.resolve/i\\            self.resolver.pw = request.authorization.get("password")' loris/webapp.py &&\
-    # patch loris not to cache if uathorization is provided
+    # patch loris so it follow authorization to the resolver and doesn't cache if authorization is provided
+    sed -i -e '/def route.*/a\\            self.resolver.user = request.authorization.get("username")' loris/webapp.py &&\
+    sed -i -e '/def route.*/a\\            self.resolver.pw = request.authorization.get("password")' loris/webapp.py &&\
     sed -i -e '/def route.*/a\\            self.enable_caching = False' loris/webapp.py &&\
     sed -i -e '/def route.*/a\\        if request.authorization:' loris/webapp.py &&\
     python3 -m venv /opt/loris/venv &&\
