@@ -81,6 +81,9 @@ RUN cd /opt && \
     sed -i -e '/.*self.resolver.resolve/i\\        if request.authorization:' loris/webapp.py  &&\
     sed -i -e '/.*self.resolver.resolve/i\\            self.resolver.user = request.authorization.get("username")' loris/webapp.py &&\
     sed -i -e '/.*self.resolver.resolve/i\\            self.resolver.pw = request.authorization.get("password")' loris/webapp.py &&\
+    # patch loris not to cache if uathorization is provided
+    sed -i -e '/def route.*/a\\            self.enable_caching = False' loris/webapp.py &&\
+    sed -i -e '/def route.*/a\\        if request.authorization:' loris/webapp.py &&\
     python3 -m venv /opt/loris/venv &&\
     export PATH="/opt/loris/venv/bin:$PATH" &&\
     pip install pip-tools &&\
@@ -100,4 +103,3 @@ VOLUME  /var/log/loris /var/cache/loris
 EXPOSE 80
 ENTRYPOINT ["/root/entrypoint.sh"]
 CMD ["/usr/bin/supervisord"]
-
