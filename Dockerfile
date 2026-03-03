@@ -96,6 +96,9 @@ RUN cd /opt && \
     mv /root/restrictedAccess.png /opt/loris/restrictedAccess.png &&\
     mkdir /tmp/static && chown www-data:www-data /tmp/static
 
+# Turn off certs check
+RUN sed -i -e '608i\        verify=False' /opt/loris/venv/lib/python3.12/site-packages/requests/adapters.py
+
 WORKDIR /opt/loris
 VOLUME  /var/log/loris /var/cache/loris
 EXPOSE 80
