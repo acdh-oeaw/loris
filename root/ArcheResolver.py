@@ -29,7 +29,7 @@ class ArcheResolver(SimpleHTTPResolver):
         signatureInt = int.from_bytes(signature, 'big')
         if int.from_bytes(signature[0:2], 'big') == int(0xFFD8):
             return 'jpg'
-        if signatureInt == int(0x49492A00) or signatureInt == int(0x4D4D002A):
+        if signatureInt == int(0x49492A00) or signatureInt == int(0x4D4D002A) or signatureInt == int(0x49492B00) or signatureInt == int(0x4D4D002B):
             return 'tif'
         if signatureInt == int(0x89504E47):
             return 'png'
